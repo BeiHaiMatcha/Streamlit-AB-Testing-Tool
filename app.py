@@ -1,3 +1,6 @@
+import os
+os.system("pip install --no-cache-dir scipy numpy pandas pymc matplotlib")
+
 import streamlit as st
 import numpy as np
 import scipy.stats as stats
