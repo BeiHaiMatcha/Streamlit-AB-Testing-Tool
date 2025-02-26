@@ -34,12 +34,13 @@ st.markdown("""
 <div class='info-text'>
     🚀 Provide your test details in the table below. No need to fill multiple forms! 🎯<br>
     📌 <b>Enter your segments, categories, and relevant data in the table.</b> 📝<br>
-    📌 <i>If using absolute counts, we will auto-convert to rates. If using rates, enter in decimal format (e.g., 0.25 for 25% conversion).</i> 📊
+    📌 <b>Enter absolute counts only</b> (e.g., 500 clicks, **not** 0.25 for 25%). 📝<br>
+    📌 <i><b>Why absolute counts?</b> To ensure consistency across different statistical tests, we require absolute counts rather than rates. Tests like the Chi-Square test work with actual counts, and keeping everything in counts allows for a more universal approach to A/B testing.</i> 📊
 </div>
 """, unsafe_allow_html=True)
-
 # Add Footer with Creator Info
 st.markdown("<div class='footer'>✨ Created by Bei | Product Analytics & Experimentation 👩‍💻 | Powered by Streamlit 🚀</div>", unsafe_allow_html=True)
+
 
 # Sidebar Guide for Choosing the Right Test
 st.sidebar.header("📊 Choosing the Right Test 🧐")
@@ -47,7 +48,12 @@ st.sidebar.markdown("<div class='fun-text'>📈 T-Test (For Continuous Data, Two
 st.sidebar.write("Use this test when comparing the **average** of a continuous metric (e.g., AOV) between **two** groups.")
 
 st.sidebar.markdown("<div class='fun-text'>📊 Chi-Square Test (For Proportions)</div>", unsafe_allow_html=True)
-st.sidebar.write("Use this test when comparing **proportions** or **percentages** (e.g., Conversion Rate). Enter absolute counts or decimals (e.g., 0.25 for 25%).")
+st.sidebar.write("""
+Use this test when comparing **proportions** or **conversion rates** (e.g., Click-through Rate, Purchase Rate).  
+🔹 **Enter absolute counts only** (e.g., number of conversions, number of clicks).  
+🔹 **We do not accept percentages (e.g., 25%) or decimals (e.g., 0.25).**   
+🔹 This ensures a **universal approach** across all statistical tests.
+""")
 
 st.sidebar.markdown("<div class='fun-text'>📊 ANOVA (For Continuous Data, More Than Two Groups)</div>", unsafe_allow_html=True)
 st.sidebar.write("Use this test when comparing the **average** of a continuous metric across **three or more** groups.")
@@ -55,25 +61,24 @@ st.sidebar.write("Use this test when comparing the **average** of a continuous m
 st.sidebar.markdown("<div class='fun-text'>🎲 Bayesian Testing (For Probability-Based Insights)</div>", unsafe_allow_html=True)
 st.sidebar.write("Want more than just a yes/no significance? Bayesian testing provides **probability-based insights** into which variant is better!")
 
+st.markdown("""
+    <div style="text-align: center; background-color: #FFF3CD; padding: 10px; border-radius: 5px; border-left: 5px solid #FFC107; font-size: 16px;">
+        ⚠️ If you started a new row and didn't fill it, please delete it before running the test.
+    </div>
+""", unsafe_allow_html=True)
+
 # Default Data for the Table
 default_data = pd.DataFrame({
-    "Segment": ["FI", "NO"],
+    "Segment": ["FI", "NO"],  # Empty row added
     "Category": ["Category A", "Category B"],
     "Sample Size - Control": [2500, 2700],
     "Sample Size - Variant": [2500, 2700],
     "Metric Type": ["Categorical", "Continuous"],  # Dropdown Selection
-    "Control Value (Absolute or Rate)": [500, 600],  # Counts for Categorical, AOV for Continuous
-    "Variant Value (Absolute or Rate)": [550, 720],  # Counts for Categorical, AOV for Continuous
-    "Test Type": ["Chi-Square", "T-Test"]  # Dropdown Selection
+    "Control Value (Absolute)": [500, 600],  # Absolute counts only
+    "Variant Value (Absolute)": [550, 720],  # Absolute counts only
+    "Test Type": ["Chi-Square", "T-Test"]
 })
 
-# Function to Interpret P-Value
-def interpret_p_value(p_value):
-    significance_level = 0.05
-    if p_value < significance_level:
-        return f"🎉 **Significant Result!** The p-value ({p_value:.4f}) is below {significance_level}, meaning there is strong evidence that the difference is not due to chance."
-    else:
-        return f"⚠️ **Not Significant.** The p-value ({p_value:.4f}) is above {significance_level}, meaning we do not have strong evidence to reject the null hypothesis."
 
 # Let users edit the table
 st.write("### Fill in your test details 📝")
@@ -83,8 +88,18 @@ edited_data = st.data_editor(
     column_config={
         "Metric Type": st.column_config.SelectboxColumn(options=["Categorical", "Continuous"]),
         "Test Type": st.column_config.SelectboxColumn(options=["Chi-Square", "T-Test", "ANOVA"])
-    }
+    },
+    height=275  # Enables scrolling
 )
+
+
+# Function to Interpret P-Value
+def interpret_p_value(p_value):
+    significance_level = 0.05
+    if p_value < significance_level:
+        return f"🎉 **Significant Result!** The p-value ({p_value:.4f}) is below {significance_level}, meaning there is strong evidence that the difference is not due to chance."
+    else:
+        return f"⚠️ **Not Significant.** The p-value ({p_value:.4f}) is above {significance_level}, meaning we do not have strong evidence to reject the null hypothesis."
 
 # Run Statistical Tests
 if st.button("Run Analysis 🚀"):
@@ -94,8 +109,8 @@ if st.button("Run Analysis 🚀"):
         sample_size_control = int(row["Sample Size - Control"])
         sample_size_variant = int(row["Sample Size - Variant"])
         metric_type = row["Metric Type"]
-        control_value = row["Control Value (Absolute or Rate)"]
-        variant_value = row["Variant Value (Absolute or Rate)"]
+        control_value = row["Control Value (Absolute)"]
+        variant_value = row["Variant Value (Absolute)"]
         test_selection = row["Test Type"]
 
         st.write(f"### Results for {Segment} | {Category}")
@@ -137,8 +152,8 @@ if use_bayesian:
         sample_size_control = int(row["Sample Size - Control"])
         sample_size_variant = int(row["Sample Size - Variant"])
         metric_type = row["Metric Type"]
-        control_value = row["Control Value (Absolute or Rate)"]
-        variant_value = row["Variant Value (Absolute or Rate)"]
+        control_value = row["Control Value (Absolute)"]
+        variant_value = row["Variant Value (Absolute)"]
 
         st.write(f"### Bayesian Analysis for {Segment} | {Category}")
 
